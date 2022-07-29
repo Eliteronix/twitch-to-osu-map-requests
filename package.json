@@ -1,0 +1,16 @@
+{
+  "name": "osu-twitch-interaction-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bancho.js": "^0.9.7",
+    "dotenv": "^15.0.0",
+    "tmi.js": "^1.8.5"
+  }
+}
