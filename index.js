@@ -24,7 +24,7 @@ client.connect();
 
 const Banchojs = require('bancho.js');
 // eslint-disable-next-line no-undef
-const bancho = new Banchojs.BanchoClient({ username: 'Eliteronix', password: process.env.OSUIRC, apiKey: process.env.OSUTOKENV1 });
+const bancho = new Banchojs.BanchoClient({ username: process.env.OSUUSERNAME, password: process.env.OSUIRC, apiKey: process.env.OSUTOKENV1 });
 
 // Called every time a message comes in
 async function onMessageHandler(target, context, msg, self) {
@@ -53,7 +53,7 @@ async function onMessageHandler(target, context, msg, self) {
 		}
 
 		try {
-			const IRCUser = await bancho.getUser('Eliteronix');
+			const IRCUser = await bancho.getUser(process.env.OSUUSERNAME);
 
 			let prefix = [];
 			if (context.mod) {
@@ -79,7 +79,7 @@ async function onMessageHandler(target, context, msg, self) {
 			}
 		}
 
-		// client.say(process.env.CHANNEL_NAME, `${context['display-name']} -> Your request has been sent.`);
+		client.say(process.env.CHANNEL_NAME, `${context['display-name']} -> Your request has been sent.`);
 	}
 }
 
