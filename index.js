@@ -42,8 +42,12 @@ async function onMessageHandler(target, context, msg, self) {
 		map = shortMatches[0];
 	}
 
-	if (map) {
+	if (map && context['display-name'].toLowerCase() !== process.env.CHANNEL_NAME.toLowerCase()) {
 		map = map.replace(/.+\//gm, '');
+
+		//Get the message without the map link
+		let message = msg.replace(longRegex, '').replace(shortRegex, '').trim();
+
 		try {
 			await bancho.connect();
 		} catch (error) {
@@ -53,7 +57,7 @@ async function onMessageHandler(target, context, msg, self) {
 		}
 
 		try {
-			const IRCUser = await bancho.getUser(process.env.OSUUSERNAME);
+			const IRCUser = await bancho.getUser(process.env.OSUPLAYER);
 
 			let prefix = [];
 			if (context.mod) {
@@ -73,6 +77,9 @@ async function onMessageHandler(target, context, msg, self) {
 			}
 
 			await IRCUser.sendMessage(`${prefix}${context['display-name']} -> https://osu.ppy.sh/b/${map}`);
+			if (message) {
+				await IRCUser.sendMessage(`${prefix}${context['display-name']} -> Comment: ${message}`);
+			}
 		} catch (error) {
 			if (error.message !== 'Currently disconnected!') {
 				console.log(error);
