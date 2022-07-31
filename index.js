@@ -1,4 +1,5 @@
 const tmi = require('tmi.js');
+const osu = require('node-osu');
 require("dotenv").config();
 
 // Define configuration options
@@ -42,7 +43,7 @@ async function onMessageHandler(target, context, msg, self) {
 		map = shortMatches[0];
 	}
 
-	if (map && context['display-name'].toLowerCase() !== process.env.CHANNEL_NAME.toLowerCase()) {
+	if (map) {
 		map = map.replace(/.+\//gm, '');
 
 		//Get the message without the map link
@@ -56,37 +57,51 @@ async function onMessageHandler(target, context, msg, self) {
 			}
 		}
 
-		try {
-			const IRCUser = await bancho.getUser(process.env.OSUPLAYER);
+		// eslint-disable-next-line no-undef
+		const osuApi = new osu.Api(process.env.OSUTOKENV1, {
+			// baseUrl: sets the base api url (default: https://osu.ppy.sh/api)
+			notFoundAsError: true, // Throw an error on not found instead of returning nothing. (default: true)
+			completeScores: false, // When fetching scores also fetch the beatmap they are for (Allows getting accuracy) (default: false)
+			parseNumeric: false // Parse numeric values into numbers/floats, excluding ids
+		});
 
-			let prefix = [];
-			if (context.mod) {
-				prefix.push('MOD');
-			}
-			if (context.badges && context.badges.vip) {
-				prefix.push('VIP');
-			}
-			if (context.subscriber) {
-				prefix.push('SUB');
+		let beatmap = await osuApi.getBeatmaps({ b: map });
+
+		beatmap = beatmap[0];
+
+		if (beatmap && context['display-name'].toLowerCase() !== process.env.CHANNEL_NAME.toLowerCase()) {
+			try {
+				const IRCUser = await bancho.getUser(process.env.OSUPLAYER);
+
+				let prefix = [];
+				if (context.mod) {
+					prefix.push('MOD');
+				}
+				if (context.badges && context.badges.vip) {
+					prefix.push('VIP');
+				}
+				if (context.subscriber) {
+					prefix.push('SUB');
+				}
+
+				if (prefix.length > 0) {
+					prefix = `[${prefix.join('/')}] `;
+				} else {
+					prefix = '';
+				}
+
+				await IRCUser.sendMessage(`${prefix}${context['display-name']} -> [${beatmap.approvalStatus}] [https://osu.ppy.sh/b/${beatmap.id} ${beatmap.artist} - ${beatmap.title} [${beatmap.version}]] (mapped by ${beatmap.creator}) | ${Math.round(beatmap.difficulty.rating * 100) / 100}* | ${beatmap.bpm} BPM`);
+				if (message) {
+					await IRCUser.sendMessage(`${prefix}${context['display-name']} -> Comment: ${message}`);
+				}
+			} catch (error) {
+				if (error.message !== 'Currently disconnected!') {
+					console.log(error);
+				}
 			}
 
-			if (prefix.length > 0) {
-				prefix = `[${prefix.join('/')}] `;
-			} else {
-				prefix = '';
-			}
-
-			await IRCUser.sendMessage(`${prefix}${context['display-name']} -> https://osu.ppy.sh/b/${map}`);
-			if (message) {
-				await IRCUser.sendMessage(`${prefix}${context['display-name']} -> Comment: ${message}`);
-			}
-		} catch (error) {
-			if (error.message !== 'Currently disconnected!') {
-				console.log(error);
-			}
+			client.say(process.env.CHANNEL_NAME, `${context['display-name']} -> [${beatmap.approvalStatus}] ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] (mapped by ${beatmap.creator}) | ${Math.round(beatmap.difficulty.rating * 100) / 100}* | ${beatmap.bpm} BPM`);
 		}
-
-		client.say(process.env.CHANNEL_NAME, `${context['display-name']} -> Your request has been sent.`);
 	}
 }
 
