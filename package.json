@@ -11,6 +11,7 @@
   "dependencies": {
     "bancho.js": "^0.9.7",
     "dotenv": "^15.0.0",
+    "node-osu": "^2.2.1",
     "tmi.js": "^1.8.5"
   }
 }
